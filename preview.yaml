@@ -1,0 +1,354 @@
+# What tools/preview.py shows (docs/PREVIEW.md): every tile of the plugin as each was shown when it was a plugin of its
+# own: transport keys (a player, an IR remote, only some keys, a key that is not an action), the D-pad, volume and
+# channel keys, the number pad sending each digit or on Enter, and the selector grid paging through activities, inputs
+# and a Harmony hub's activities.
+tiles:
+- tile: transport
+  name: Living room
+  entity: media_player.living_room
+  options:
+    previous: media_player.media_previous_track
+    stop: media_player.media_stop
+    play: media_player.media_play
+    pause: media_player.media_pause
+    play_pause: media_player.media_play_pause
+    next: media_player.media_next_track
+    eject: script.turn_on script.eject_disc
+  sizes:
+  - 1x1
+  - 2x1
+  - 3x1
+  - 5x1
+- tile: transport
+  name: Blu-ray
+  entity: remote.cinema_ir
+  options:
+    previous: remote.send_command command=PREVIOUS
+    play_pause: remote.send_command command=PLAY_PAUSE
+    next: remote.send_command command=NEXT
+    eject: remote.send_command command=EJECT
+  sizes:
+  - 1x1
+  - 2x1
+  - 4x1
+- tile: transport
+  name: Kitchen
+  entity: media_player.kitchen
+  options:
+    previous: media_player.media_previous_track
+    play: media_player.media_play
+    pause: media_player.media_pause
+    next: media_player.media_next_track
+    eject: eject the disc
+  sizes:
+  - 1x1
+  - 2x1
+  - 3x1
+- tile: transport
+  name: Not set up
+  sizes:
+  - 1x1
+  - 2x1
+- tile: dpad
+  name: Cinema
+  entity: remote.cinema
+  options:
+    back: remote.send_command command=BACK
+    up: remote.send_command command=UP
+    home: remote.send_command command=HOME
+    left: remote.send_command command=LEFT
+    ok: remote.send_command command=OK
+    right: remote.send_command command=RIGHT
+    menu: remote.send_command command=MENU
+    down: remote.send_command command=DOWN
+    guide: remote.send_command command=GUIDE
+  sizes:
+  - 1x1
+  - 2x1
+  - 2x2
+  - 3x3
+- tile: dpad
+  name: Blu-ray
+  entity: remote.bluray
+  options:
+    up: remote.send_command command=UP
+    left: remote.send_command command=LEFT
+    ok: remote.send_command command=OK
+    right: remote.send_command command=RIGHT
+    down: remote.send_command command=DOWN
+  sizes:
+  - 1x1
+  - 2x2
+- tile: dpad
+  name: Hall
+  entity: remote.hall
+  options:
+    up: remote.send_command command=UP
+    ok: press ok
+    down: remote.send_command command=DOWN
+    menu: script.turn_on script.open_menu
+  sizes:
+  - 1x1
+  - 2x2
+- tile: dpad
+  name: Not set up
+  sizes:
+  - 1x1
+  - 2x1
+- tile: volume
+  name: Living room
+  entity: media_player.living_room_volume
+  options:
+    down: media_player.volume_down
+    mute: media_player.volume_mute is_volume_muted=true
+    up: media_player.volume_up
+  sizes:
+  - 1x1
+  - 2x1
+  - 1x2
+  - 2x2
+  - 3x3
+- tile: volume
+  name: Kitchen
+  entity: media_player.kitchen_volume
+  options:
+    down: media_player.volume_down
+    mute: media_player.volume_mute is_volume_muted=true
+    up: media_player.volume_up
+  sizes:
+  - 1x1
+  - 1x2
+- tile: volume
+  name: Amplifier
+  entity: remote.amplifier
+  options:
+    down: remote.send_command command=VOLUME_DOWN
+    up: remote.send_command command=VOLUME_UP
+  sizes:
+  - 1x1
+  - 1x2
+- tile: volume
+  name: Hall
+  entity: media_player.hall
+  options:
+    down: lower the volume
+    mute: media_player.volume_mute is_volume_muted=true
+    up: media_player.volume_up
+  sizes:
+  - 1x1
+  - 1x2
+- tile: volume
+  name: Bar TV
+  entity: media_player.bar_tv
+  options:
+    style: channel
+    down: webostv.button button=CHANNELDOWN
+    up: webostv.button button=CHANNELUP
+  sizes:
+  - 1x1
+  - 2x1
+  - 1x2
+- tile: volume
+  name: Not set up
+  sizes:
+  - 1x1
+  - 1x2
+- tile: numpad
+  name: Channel
+  entity: remote.living_room
+  options:
+    action: remote.send_command command=NUM_{digit}
+    send: each
+    enter: true
+    enter_action: remote.send_command command=ENTER
+    clear: false
+  sizes:
+  - 1x1
+  - 2x1
+  - 1x2
+  - 2x2
+- tile: numpad
+  name: TV select
+  entity: input_number.tv_select
+  options:
+    action: input_number.set_value value={code}
+    send: enter
+    enter: true
+    clear: true
+    max: 2
+  sizes:
+  - 1x1
+  - 2x1
+  - 1x2
+  - 2x2
+  - 3x3
+- tile: numpad
+  name: Cameras
+  entity: input_select.cctv
+  options:
+    action: input_select.select_option option=Camera {code}
+    send: enter
+    enter: true
+    clear: false
+    max: 2
+  sizes:
+  - 2x2
+- tile: numpad
+  name: Broken
+  entity: remote.living_room
+  options:
+    action: change the channel
+    send: enter
+    enter: true
+  sizes:
+  - 2x2
+- tile: numpad
+  name: Not set up
+  sizes:
+  - 1x1
+  - 2x1
+- tile: grid
+  name: Cinema activity
+  entity: input_select.cinema_activity
+  sizes:
+  - 1x1
+  - 2x1
+  - 1x2
+  - 2x2
+  - 3x3
+- tile: grid
+  name: Activity, no Off
+  entity: input_select.cinema_activity
+  options:
+    hide:
+    - 'Off'
+  sizes:
+  - 2x2
+- tile: grid
+  name: TV inputs
+  entity: media_player.lounge_tv
+  sizes:
+  - 1x1
+  - 2x1
+  - 2x2
+- tile: grid
+  name: Harmony
+  entity: remote.harmony_hub
+  sizes:
+  - 2x1
+  - 2x2
+- tile: grid
+  name: Bar sound
+  entity: select.bar_sound_mode
+  sizes:
+  - 2x1
+- tile: grid
+  name: Not set up
+  sizes:
+  - 1x1
+states:
+  media_player.living_room:
+    state: playing
+    attributes:
+      friendly_name: Living room
+  remote.cinema_ir:
+    state: 'on'
+    attributes:
+      friendly_name: Cinema IR
+  media_player.kitchen:
+    state: paused
+    attributes:
+      friendly_name: Kitchen
+  remote.cinema:
+    state: 'on'
+    attributes:
+      friendly_name: Cinema
+  remote.bluray:
+    state: 'on'
+    attributes:
+      friendly_name: Blu-ray
+  remote.hall:
+    state: 'on'
+    attributes:
+      friendly_name: Hall
+  media_player.living_room_volume:
+    state: playing
+    attributes:
+      friendly_name: Living room
+      is_volume_muted: true
+  media_player.kitchen_volume:
+    state: playing
+    attributes:
+      friendly_name: Kitchen
+      is_volume_muted: false
+  remote.amplifier:
+    state: 'on'
+    attributes:
+      friendly_name: Amplifier
+  media_player.bar_tv:
+    state: playing
+    attributes:
+      friendly_name: Bar TV
+  media_player.hall:
+    state: playing
+    attributes:
+      friendly_name: Hall
+      is_volume_muted: false
+  remote.living_room:
+    state: 'on'
+    attributes:
+      friendly_name: Living room
+  input_number.tv_select:
+    state: '1'
+    attributes:
+      friendly_name: TV select
+  input_select.cctv:
+    state: Camera 1
+    attributes:
+      friendly_name: Cameras
+  input_select.cinema_activity:
+    state: Watch Blu-ray
+    attributes:
+      friendly_name: Cinema activity
+      options:
+      - 'Off'
+      - Watch TV
+      - Watch Blu-ray
+      - Sky Q
+      - Apple TV
+      - Roku
+      - Music
+      - PlayStation
+      - Xbox
+      - Radio
+  media_player.lounge_tv:
+    state: 'on'
+    attributes:
+      friendly_name: Lounge TV
+      source: HDMI 2
+      source_list:
+      - Live TV
+      - HDMI 1
+      - HDMI 2
+      - HDMI 3
+      - HDMI 4
+      - Bluetooth
+  remote.harmony_hub:
+    state: 'on'
+    attributes:
+      friendly_name: Harmony Hub
+      current_activity: Watch a Movie
+      activity_list:
+      - Watch TV
+      - Watch a Movie
+      - Listen to Music
+      - Play Games
+  select.bar_sound_mode:
+    state: unavailable
+    attributes:
+      friendly_name: Bar sound mode
+      options:
+      - Stereo
+      - Movie
+      - Music
+      - Night

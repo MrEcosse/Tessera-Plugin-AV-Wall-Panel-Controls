@@ -1,0 +1,150 @@
+# AV wall panel controls: media keys for a panel on the wall instead of a remote in the hand, for a conference room,
+# a sports bar, a restaurant or a cinema room. Five tiles, each running the Home Assistant actions a person gives it:
+# transport keys, a D-pad, volume or channel keys, a number pad, and a grid of a selector's options (inputs,
+# activities). One plugin so the command parser is in flash once and there is one release to follow.
+# docs/MANIFEST.md has every field.
+id: av_wall_panel_controls
+version: 0.1.0
+# 0.12 for the selector grid's list option (multiple). 0.10 for tessera::tap_point() and the lists in PSRAM.
+api: "0.12"
+icon: remote-tv
+maintainer: MrEcosse
+license: MIT
+stage: beta
+topics: [media, home]
+requires:
+  esphome: 2026.6.2
+boards: any
+# Five tiles and one parser (it was 6 KB a plugin as four plugins, 8 KB for the grid).
+flash_kb: 16
+
+permissions:
+  # A key performs whatever action a person types for it. These are the ones the tiles are made for, and the ones
+  # their READMEs name; the screen does not limit a key to this list (docs/MANIFEST.md, "permissions"), so read the
+  # README's "Good to know" before you add it. The selector grid sends only the four selecting actions, by the domain
+  # of its entity.
+  home_assistant_actions:
+    - media_player.media_previous_track
+    - media_player.media_stop
+    - media_player.media_play
+    - media_player.media_pause
+    - media_player.media_play_pause
+    - media_player.media_next_track
+    - media_player.volume_down
+    - media_player.volume_up
+    - media_player.volume_mute
+    - media_player.select_source
+    - remote.send_command
+    - remote.turn_on
+    - webostv.button
+    - input_select.select_option
+    - select.select_option
+    - input_number.set_value
+    - input_text.set_value
+    - number.set_value
+    - script.turn_on
+    - button.press
+    - input_button.press
+    - scene.turn_on
+    - switch.turn_on
+    - switch.turn_off
+    - switch.toggle
+
+tiles:
+  # Transport keys: skip back, stop, play, pause, play/pause, skip forward, eject. Keys without an action are left out;
+  # the rest keep that order, in one row, or two or three on a narrow tile. A media player lights what it does.
+  - id: transport
+    name: transport_tile_name
+    icon: play-pause
+    sizes: { min: 1x1, max: 9x1 }
+    # Seven keys of a block and a label each (about 180 bytes), seven commands of 228 bytes, the hint line and the
+    # tile's own fields (rule 8: about 3.3 KB).
+    memory: 3400
+    domains: [media_player, remote, script, button, input_button, switch, scene, automation]
+    example: transport_tile_example
+    options:
+      - { id: previous, kind: text, label: transport_key_previous, hint: transport_key_previous_hint }
+      - { id: stop, kind: text, label: transport_key_stop, hint: transport_key_stop_hint }
+      - { id: play, kind: text, label: transport_key_play, hint: transport_key_play_hint }
+      - { id: pause, kind: text, label: transport_key_pause, hint: transport_key_pause_hint }
+      - { id: play_pause, kind: text, label: transport_key_play_pause, hint: transport_key_play_pause_hint }
+      - { id: next, kind: text, label: transport_key_next, hint: transport_key_next_hint }
+      - { id: eject, kind: text, label: transport_key_eject, hint: transport_key_eject_hint }
+
+  # A D-pad: the arrows round OK, and back, home, menu and guide in the corners. An empty key leaves its place empty.
+  - id: dpad
+    name: dpad_tile_name
+    icon: gamepad-variant
+    sizes: { min: 1x1, max: 3x3 }
+    # Nine keys of a block and a label each, nine commands of 228 bytes, the hint line and the tile's fields (about
+    # 4.1 KB).
+    memory: 4200
+    domains: [media_player, remote, script, button, input_button, switch, scene, automation]
+    example: dpad_tile_example
+    options:
+      - { id: back, kind: text, label: dpad_key_back, hint: dpad_key_back_hint }
+      - { id: up, kind: text, label: dpad_key_up, hint: dpad_key_up_hint }
+      - { id: home, kind: text, label: dpad_key_home, hint: dpad_key_home_hint }
+      - { id: left, kind: text, label: dpad_key_left, hint: dpad_key_left_hint }
+      - { id: ok, kind: text, label: dpad_key_ok, hint: dpad_key_ok_hint }
+      - { id: right, kind: text, label: dpad_key_right, hint: dpad_key_right_hint }
+      - { id: menu, kind: text, label: dpad_key_menu, hint: dpad_key_menu_hint }
+      - { id: down, kind: text, label: dpad_key_down, hint: dpad_key_down_hint }
+      - { id: guide, kind: text, label: dpad_key_guide, hint: dpad_key_guide_hint }
+
+  # Volume keys (quieter, mute, louder: across a wide tile, down a tall one), or with the Channel style two chevron
+  # keys for channel down and up. A media player that is muted lights the mute key.
+  - id: volume
+    name: volume_tile_name
+    icon: volume-high
+    sizes: { min: 1x1, max: 3x3 }
+    # Three keys of a block and a label each, three commands of 228 bytes, the hint line and the tile's fields.
+    memory: 1700
+    domains: [media_player, remote, script, button, input_button, switch, scene, automation]
+    attributes: [is_volume_muted]
+    example: volume_tile_example
+    options:
+      # Added in 0.2.0. The default is the volume keys every earlier version drew, so a tile set up before it is
+      # unchanged. The options are kept by their id, so where this one stands in the list changes nothing saved.
+      - { id: style, kind: choice, label: volume_style, hint: volume_style_hint, default: volume,
+          choices: [{ value: volume, label: volume_style_volume }, { value: channel, label: volume_style_channel }] }
+      - { id: down, kind: text, label: volume_key_down, hint: volume_key_down_hint }
+      - { id: mute, kind: text, label: volume_key_mute, hint: volume_key_mute_hint }
+      - { id: up, kind: text, label: volume_key_up, hint: volume_key_up_hint }
+
+  # A number pad: 0 to 9 with an optional Clear and Enter, sending each digit or the whole number on Enter. One
+  # action text with {digit} and {code} in it. Not for PIN codes: Tessera's own lock and alarm keypad is for those.
+  - id: numpad
+    name: numpad_tile_name
+    icon: dialpad
+    sizes: { min: 1x1, max: 4x4 }
+    # Twelve keys of a block and a label each, the number line, the hint, two commands of 228 bytes, the action texts
+    # and the digits typed (about 3.2 KB).
+    memory: 3300
+    domains: [remote, media_player, input_number, input_text, input_select, number, select, script]
+    example: numpad_tile_example
+    options:
+      - { id: action, kind: text, label: numpad_action, hint: numpad_action_hint }
+      - { id: send, kind: choice, label: numpad_send, hint: numpad_send_hint, default: each,
+          choices: [{ value: each, label: numpad_send_each }, { value: enter, label: numpad_send_enter }] }
+      - { id: enter, kind: toggle, label: numpad_enter, hint: numpad_enter_hint, default: false }
+      - { id: enter_action, kind: text, label: numpad_enter_action, hint: numpad_enter_action_hint }
+      - { id: clear, kind: toggle, label: numpad_clear, hint: numpad_clear_hint, default: true }
+      - { id: max, kind: number, min: 1, max: 8, step: 1, unit: digits, default: 3, label: numpad_max, hint: numpad_max_hint }
+      - { id: idle, kind: number, min: 0, max: 60, step: 1, unit: s, default: 10, label: numpad_idle, hint: numpad_idle_hint }
+      - { id: show, kind: toggle, label: numpad_show, hint: numpad_show_hint, default: true }
+
+  # A selector grid: every option of a selector on the tile as a key (an input_select's or select's options, a media
+  # player's inputs, a remote's activities), the one in use lit, paged with arrows when they do not all fit.
+  - id: grid
+    name: grid_tile_name
+    icon: remote-tv
+    sizes: { min: 1x1, max: 4x4 }
+    # Twelve keys of a block and a label each, the arrows and the page number, the hint, the options left out (16 of
+    # 49 bytes) and up to 64 options of 49 bytes kept in the tile.
+    memory: 7000
+    domains: [input_select, select, media_player, remote]
+    attributes: [options, source_list, source, activity_list, current_activity]
+    example: grid_tile_example
+    options:
+      - { id: hide, kind: text, multiple: 16, label: grid_hide, hint: grid_hide_hint }
