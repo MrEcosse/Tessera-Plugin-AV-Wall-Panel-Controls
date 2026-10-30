@@ -159,7 +159,7 @@ class GridTile : public tessera::Tile {
     const int index = page_ * per_page_ + slot;
     if (index >= n) return;
     bool sent = false;
-    if (source_ && entity_[0]) sent = tessera::action(source_->service, entity_, source_->field, items_[index].name);
+    if (source_ && entity_[0]) sent = run_action(source_->service, entity_, source_->field, items_[index].name);
     // Lit at once; Home Assistant's answer puts it right if the device chose otherwise.
     if (sent) copy(current_, sizeof current_, items_[index].name);
     flash_ = slot;

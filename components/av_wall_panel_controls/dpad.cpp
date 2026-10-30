@@ -132,8 +132,7 @@ class PadTile : public tessera::Tile {
     const char *target = key.command.target[0] ? key.command.target : entity_;
     bool sent = false;
     if (key.valid && target[0])
-      sent = tessera::action(key.command.action, target, key.command.key[0] ? key.command.key : nullptr,
-                             key.command.value);
+      sent = run_action(key.command.action, target, key.command.key, key.command.value);
     flash_ = i;
     flash_ok_ = sent;
     flash_at_ = esphome::millis();
