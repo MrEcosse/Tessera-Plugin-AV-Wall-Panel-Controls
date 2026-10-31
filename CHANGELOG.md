@@ -4,6 +4,10 @@
 
 - Builds on Tessera 0.4.91 and later (plugin API 0.24), which took away the key and value form of `tessera::action`.
   A key's field now goes as a JSON object, its value as the text typed, as before.
+- Selector grid: the twelve keys, the arrows, the page number and the hint are made once when the tile is; a change of
+  the options only lays them out again and shows or hides them, instead of deleting and making them anew.
+- Selector grid: the options that come are compared with the ones kept as they arrive, so the tile keeps one list of up
+  to 64, not two; it declares the 7.2 KB that takes (it said 7 KB and could keep 9.5).
 
 ## 0.1.0
 - First version, as one plugin of five tiles: transport controls, a D-pad, volume and channel controls, a number pad and

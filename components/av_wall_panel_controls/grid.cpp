@@ -69,6 +69,7 @@ class GridTile : public tessera::Tile {
       copy(hidden_[hidden_count_++], NAME_LEN, name);
     }
     gap_ = ui::px(6);
+    build();
     layout();
   }
 
@@ -76,7 +77,7 @@ class GridTile : public tessera::Tile {
     const char *wait = data["wait"] | "";
     got_state_ = true;
     if (!source_ || std::strcmp(wait, "wrong_entity") == 0) {
-      if (wrong_ && hint_) return;
+      if (wrong_) return;  // the hint is up already
       wrong_ = true;
       if (!items_.empty()) items_.clear();
       layout();
@@ -84,19 +85,35 @@ class GridTile : public tessera::Tile {
     }
     wrong_ = false;
 
-    // The options, less the ones left out. Rebuilt only when they changed, so a change of the option in use (the usual
-    // change) only repaints.
-    fresh_.clear();
-    for (JsonVariantConst v : data["attributes"][source_->list].as<JsonArrayConst>()) {
+    // The options, less the ones left out, compared with the ones kept as they come: copied again only when they
+    // changed, so a change of the option in use (the usual change) only repaints, and no second list is kept.
+    JsonArrayConst list = data["attributes"][source_->list].as<JsonArrayConst>();
+    size_t count = 0;
+    bool changed = false;
+    for (JsonVariantConst v : list) {
       const char *name = v | "";
       if (!name[0] || is_hidden(name)) continue;
-      if ((int) fresh_.size() >= MAX_ITEMS) break;
+      if ((int) count >= MAX_ITEMS) break;
       Item item;
-      copy(item.name, sizeof item.name, name);
-      fresh_.push_back(item);
+      copy(item.name, sizeof item.name, name);  // cut as the kept one was
+      if (count >= items_.size() || std::strcmp(item.name, items_[count].name) != 0) {
+        changed = true;
+        break;
+      }
+      ++count;
     }
-    bool changed = fresh_.size() != items_.size();
-    for (size_t i = 0; !changed && i < fresh_.size(); ++i) changed = std::strcmp(fresh_[i].name, items_[i].name) != 0;
+    if (count != items_.size()) changed = true;
+    if (changed) {
+      items_.clear();
+      for (JsonVariantConst v : list) {
+        const char *name = v | "";
+        if (!name[0] || is_hidden(name)) continue;
+        if ((int) items_.size() >= MAX_ITEMS) break;
+        Item item;
+        copy(item.name, sizeof item.name, name);
+        items_.push_back(item);
+      }
+    }
 
     const char *state = data["state"] | "";
     const char *current = source_->current ? (data["attributes"][source_->current] | "") : state;
@@ -107,7 +124,6 @@ class GridTile : public tessera::Tile {
     away_ = away;
 
     if (changed) {
-      items_ = fresh_;
       layout();  // shows the page of the option in use
       return;
     }
@@ -131,8 +147,8 @@ class GridTile : public tessera::Tile {
   }
 
   void on_theme() override {
-    if (hint_) ui::set_color(hint_, theme::MUTED);
-    if (page_label_) ui::set_color(page_label_, theme::MUTED);
+    ui::set_color(hint_, theme::MUTED);
+    ui::set_color(page_label_, theme::MUTED);
     paint();
   }
 
@@ -196,27 +212,45 @@ class GridTile : public tessera::Tile {
     return slot < per_page_ ? slot : -1;
   }
 
-  void clear() {
+  // Every object the tile shows, made once and hidden; layout() sizes, places and shows the ones a layout needs.
+  void build() {
     for (Key &key : keys_) {
-      if (key.block) lv_obj_del(key.block);
-      key = Key{};
+      key.block = ui::block(parent_, theme::BUTTON);
+      key.label = ui::text(key.block, Font::BODY, theme::INK);
+      lv_obj_set_style_text_align(key.label, LV_TEXT_ALIGN_CENTER, 0);
+      lv_obj_add_flag(key.block, LV_OBJ_FLAG_HIDDEN);
     }
+    lv_obj_t **arrows[2] = {&prev_, &next_};
+    const uint32_t glyphs[2] = {0xF0141, 0xF0142};  // chevron-left, chevron-right
+    for (int a = 0; a < 2; ++a) {
+      lv_obj_t *b = ui::block(parent_, theme::BUTTON);
+      lv_obj_t *icon = ui::label(b, Font::ICON_SMALL, theme::INK);
+      lv_obj_set_style_text_align(icon, LV_TEXT_ALIGN_CENTER, 0);
+      ui::set_text(icon, ui::icon(glyphs[a]));
+      lv_obj_add_flag(b, LV_OBJ_FLAG_HIDDEN);
+      *arrows[a] = b;
+    }
+    page_label_ = ui::label(parent_, Font::BODY, theme::MUTED);
+    lv_obj_set_style_text_align(page_label_, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_add_flag(page_label_, LV_OBJ_FLAG_HIDDEN);
+    hint_ = ui::text(parent_, Font::BODY, theme::MUTED);
+    lv_obj_set_style_text_align(hint_, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_add_flag(hint_, LV_OBJ_FLAG_HIDDEN);
+  }
+
+  void hide_all() {
+    for (Key &key : keys_) lv_obj_add_flag(key.block, LV_OBJ_FLAG_HIDDEN);
     key_count_ = 0;
-    for (lv_obj_t **obj : {&hint_, &prev_, &next_, &page_label_})
-      if (*obj) {
-        lv_obj_del(*obj);
-        *obj = nullptr;
-      }
+    for (lv_obj_t *obj : {hint_, prev_, next_, page_label_}) lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
     paged_ = false;
   }
 
   void show_hint(const char *key) {
-    hint_ = ui::text(parent_, Font::BODY, theme::MUTED);
-    lv_obj_set_width(hint_, width_);
-    lv_obj_set_style_text_align(hint_, LV_TEXT_ALIGN_CENTER, 0);
-    ui::set_text(hint_, plugin_->text(key));
     const int lines = ui::text_width(plugin_->text(key), Font::BODY) > width_ ? 2 : 1;
+    lv_obj_set_size(hint_, width_, lines * ui::line_height(Font::BODY));
+    ui::set_text(hint_, plugin_->text(key));
     lv_obj_set_pos(hint_, 0, (height_ - lines * ui::line_height(Font::BODY)) / 2);
+    lv_obj_remove_flag(hint_, LV_OBJ_FLAG_HIDDEN);
   }
 
   // How many keys of a finger's size fit across and down the room given, at most twelve in all.
@@ -231,7 +265,7 @@ class GridTile : public tessera::Tile {
   }
 
   void layout() {
-    clear();
+    hide_all();
     const int n = (int) items_.size();
     if (!source_ || wrong_ || !entity_[0]) {
       show_hint("no_entity");
@@ -300,14 +334,11 @@ class GridTile : public tessera::Tile {
     const int slots = std::min(per_page_, MAX_KEYS);
     for (int i = 0; i < slots; ++i) {
       Key &key = keys_[i];
-      key.block = ui::block(parent_, theme::BUTTON);
       lv_obj_set_size(key.block, kw_, kh_);
       lv_obj_set_pos(key.block, left_ + (i % cols_) * (kw_ + gap_), top_ + (i / cols_) * (kh_ + gap_));
       lv_obj_set_style_radius(key.block, radius_, 0);
-      key.label = two_lines_ ? ui::text(key.block, face_, theme::INK) : ui::label(key.block, face_, theme::INK);
-      lv_obj_set_width(key.label, kw_ - 2 * pad);
-      lv_obj_set_style_text_align(key.label, LV_TEXT_ALIGN_CENTER, 0);
-      if (!two_lines_) lv_label_set_long_mode(key.label, LV_LABEL_LONG_DOT);
+      ui::set_font(key.label, face_);
+      // Shown by show_page(), which gives the label one line's height or two.
     }
     key_count_ = slots;
 
@@ -315,28 +346,23 @@ class GridTile : public tessera::Tile {
       const int y = side_ ? 0 : height_ - strip_h_;
       const int ah = side_ ? height_ : strip_h_;
       const int aw = side_ ? arrow_w_ : std::min(ui::mm(14), width_ / 3);
-      const Font icon_face = Font::ICON_SMALL;
-      const int ih = ui::line_height(icon_face);
-      lv_obj_t **arrows[2] = {&prev_, &next_};
-      const uint32_t glyphs[2] = {0xF0141, 0xF0142};  // chevron-left, chevron-right
+      const int ih = ui::line_height(Font::ICON_SMALL);
+      lv_obj_t *arrows[2] = {prev_, next_};
       for (int a = 0; a < 2; ++a) {
-        lv_obj_t *b = ui::block(parent_, theme::BUTTON);
+        lv_obj_t *b = arrows[a];
         lv_obj_set_size(b, aw, ah);
         lv_obj_set_pos(b, a == 0 ? 0 : width_ - aw, y);
         lv_obj_set_style_radius(b, std::min(radius_, std::min(aw, ah) / 2), 0);
-        lv_obj_t *icon = ui::label(b, icon_face, theme::INK);
+        lv_obj_t *icon = lv_obj_get_child(b, 0);
         lv_obj_set_width(icon, aw);
-        lv_obj_set_style_text_align(icon, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_set_pos(icon, 0, (ah - ih) / 2);
-        ui::set_text(icon, ui::icon(glyphs[a]));
-        *arrows[a] = b;
+        lv_obj_remove_flag(b, LV_OBJ_FLAG_HIDDEN);
       }
       // The page number between the arrows of the strip; arrows at the sides leave no room for it.
       if (!side_) {
-        page_label_ = ui::label(parent_, Font::BODY, theme::MUTED);
         lv_obj_set_width(page_label_, width_ - 2 * aw);
-        lv_obj_set_style_text_align(page_label_, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_set_pos(page_label_, aw, y + (strip_h_ - ui::line_height(Font::BODY)) / 2);
+        lv_obj_remove_flag(page_label_, LV_OBJ_FLAG_HIDDEN);
       }
     }
 
@@ -362,9 +388,10 @@ class GridTile : public tessera::Tile {
       ui::set_text(key.label, name);
       // Centred down the key: one line or two, as the words need.
       const int lines = two_lines_ && ui::text_width(name, face_) > kw_ - 2 * pad ? 2 : 1;
+      lv_obj_set_size(key.label, kw_ - 2 * pad, lines * ui::line_height(face_));
       lv_obj_set_pos(key.label, pad, (kh_ - lines * ui::line_height(face_)) / 2);
     }
-    if (page_label_) {
+    if (paged_ && !side_) {
       char text[16];
       std::snprintf(text, sizeof text, "%d/%d", page_ + 1, pages_);
       ui::set_text(page_label_, text);
@@ -393,7 +420,7 @@ class GridTile : public tessera::Tile {
       ui::set_color(key.label, away_ ? theme::SUBTLE : theme::INK);
     }
     for (lv_obj_t *arrow : {prev_, next_}) {
-      if (!arrow) continue;
+      if (!paged_) break;
       ui::set_fill(arrow, Tone::NORMAL, theme::BUTTON);
       lv_obj_t *icon = lv_obj_get_child(arrow, 0);
       if (icon) ui::set_color(icon, theme::INK);
@@ -407,7 +434,7 @@ class GridTile : public tessera::Tile {
   char entity_[128] = "";
   char hidden_[MAX_HIDDEN][NAME_LEN] = {};
   int hidden_count_ = 0;
-  tessera::List<Item> items_, fresh_;
+  tessera::List<Item> items_;
   char current_[NAME_LEN] = "";
   bool away_ = false, wrong_ = false, got_state_ = false;
 

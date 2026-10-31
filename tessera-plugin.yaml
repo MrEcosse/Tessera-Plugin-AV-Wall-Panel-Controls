@@ -140,9 +140,9 @@ tiles:
     name: grid_tile_name
     icon: remote-tv
     sizes: { min: 1x1, max: 4x4 }
-    # Twelve keys of a block and a label each, the arrows and the page number, the hint, the options left out (16 of
-    # 49 bytes) and up to 64 options of 49 bytes kept in the tile.
-    memory: 7000
+    # Twelve keys of a block and a label each (2160), the arrows, the page number and the hint (560), the options left
+    # out (16 of 49 bytes, 784), up to 64 options of 49 bytes (3136) and the tile's fields: about 7 KB, all made once.
+    memory: 7200
     domains: [input_select, select, media_player, remote]
     attributes: [options, source_list, source, activity_list, current_activity]
     example: grid_tile_example
