@@ -250,7 +250,7 @@ class PadTile : public tessera::Tile {
     if (!target[0]) return false;
     char value[65];
     if (!expand(command.value, digit, code_, value, sizeof value)) return false;
-    return tessera::action(command.action, target, command.key[0] ? command.key : nullptr, value);
+    return run_action(command.action, target, command.key, value);
   }
 
   bool press_digit(int digit) {
