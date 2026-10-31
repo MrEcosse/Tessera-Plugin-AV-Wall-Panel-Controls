@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Builds on Tessera 0.4.91 and later (plugin API 0.24), which took away the key and value form of `tessera::action`.
+  A key's field now goes as a JSON object, its value as the text typed, as before.
+
 ## 0.1.0
 - First version, as one plugin of five tiles: transport controls, a D-pad, volume and channel controls, a number pad and
   a selector grid. They were four plugins of their own before (transport_controls 0.2.1, d_pad 0.1.2, volume_controls

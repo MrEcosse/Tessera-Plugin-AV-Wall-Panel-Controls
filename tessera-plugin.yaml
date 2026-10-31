@@ -4,7 +4,7 @@
 # activities). One plugin so the command parser is in flash once and there is one release to follow.
 # docs/MANIFEST.md has every field.
 id: av_wall_panel_controls
-version: 0.1.0
+version: 0.1.1
 # 0.12 for the selector grid's list option (multiple). 0.10 for tessera::tap_point() and the lists in PSRAM.
 api: "0.12"
 icon: remote-tv
