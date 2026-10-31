@@ -23,8 +23,8 @@ one way of writing an action, so learning one means knowing them all, and every 
 layout. Keys are never smaller than a finger allows on that screen; a larger tile gives them more room.
 
 **Tried on:** the plugin bench (Tessera's own firmware, built for a computer) on the CYD, the 4-inch Guition, the
-4.3-inch Waveshare standing up and the 10.1-inch Guition, light and dark; and a real 4-inch Guition, with an LG webOS TV
-for the number pad.
+4.3-inch Waveshare standing up and the 10.1-inch Guition, light and dark; and on real screens: the 4-inch Guition (with
+an LG webOS TV for the number pad) and the 8-inch Seeed reTerminal D1001.
 
 ## Set up
 
