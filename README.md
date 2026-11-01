@@ -368,4 +368,4 @@ panel, from a remote or by an automation.
 
 ### A Currated Bundle of Digital Produce by Beyond the Veg
 
-![Beyond the Veg logo, with BTV lettering on a light background](../assets/beyond-the-veg-logo-on-light.svg)
+![Beyond the Veg logo, with BTV lettering on a light background](./assets/beyond-the-veg-logo-on-light.svg)
