@@ -364,3 +364,8 @@ panel, from a remote or by an automation.
   own: it lays its keys out in the middle of the tile, finds the key under the finger (`tessera::tap_point`) and sends
   its action (`tessera::action`). The selector grid reads the entity's list attributes and keeps its options in the
   screen's PSRAM where the board has it.
+
+
+### A Currated Bundle of Digital Produce by Beyond the Veg
+
+![Beyond the Veg logo, with BTV lettering on a light background](../assets/beyond-the-veg-logo-on-light.svg)
